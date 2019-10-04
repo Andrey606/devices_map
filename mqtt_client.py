@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt #import the client1
 import time
 
-broker_address = '192.168.50.142'
+broker_address = '192.168.50.18'
 port = 8883
 USERNAME = "omo-dev-embedded"
 PASS = "omo"
@@ -15,7 +15,7 @@ discovery_answer = '{ discovery finished }'
 
 STATUS = False
 
-TIMEOUT = 2.0
+TIMEOUT = 0.1
 
 ########################################
 def on_message(client, userdata, message):

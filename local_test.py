@@ -1,11 +1,11 @@
 from mqtt_client import send_responce
-from connect_by_ssh import get_file
+from connect_by_ssh import get_file, parse_file
 from draw import *
 
+f = open("table.txt", "r")
 
-if send_responce() == True:
-    for row in get_file():
-        print(row)
+for row in parse_file(f):
+    print(row)
 
 
 coord = Coordinator(20, 100)
@@ -17,8 +17,4 @@ while i < 10:
     i = i + 1
 
 
-
-
-
 init()
-

@@ -1,7 +1,7 @@
 import paramiko 
 
 # HOST
-host = '192.168.50.142'
+host = '192.168.50.18'
 user = 'pi'
 secret = 'Lfqvyt100gbfcnhjd!'
 port = 22
