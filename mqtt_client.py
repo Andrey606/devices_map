@@ -15,7 +15,7 @@ discovery_answer = '{ discovery finished }'
 
 STATUS = False
 
-TIMEOUT = 0.1
+TIMEOUT = 1
 
 ########################################
 def on_message(client, userdata, message):
@@ -28,6 +28,8 @@ def on_message(client, userdata, message):
     
     if discovery_answer == answer:
         STATUS = True
+    else:
+        print("Error")
 ########################################
 
 

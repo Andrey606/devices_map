@@ -36,3 +36,10 @@ def parse_file(file):
         ret.append(arr)
         
     return ret
+
+def inArray(var, array):
+    for arr1 in array:
+        if var in arr1:
+            return True
+    
+    return False

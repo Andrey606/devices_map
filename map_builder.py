@@ -1,24 +1,58 @@
 from mqtt_client import send_responce
-from connect_by_ssh import get_file
+from connect_by_ssh import get_file, parse_file, inArray
 from draw import *
+import time
 
 
-if send_responce() == True:
-    for row in get_file():
-        print(row)
+# find all nodes
+def find_nods(parent, table, depth, parent_coord): 
+    child_list = []
+    child_position = []
+    objects = []
+
+    # look for nodes of parent
+    for row in table:
+        if row[3] == '1' and not inArray(row[1], child_list) and row[6] == parent:  
+            child_list.append( [row[1], row[0], row[4], row[2]] )
+
+        if row[3] == '0' and row[1] == parent and not inArray(row[6], child_list):
+            child_list.append( [row[6], 'null', row[4], 'null'] )
+            for row2 in table:
+                if row2[1] == row[6] and row2[6] == parent:
+                    child_list[-1] =  [row2[1], row2[0], row2[4], row2[2]] 
+                    break
+
+    # draw them on the holst
+    child_position = post_items(child_list, depth+1, parent_coord) 
+
+    # recall this function for looking nodes of found nodes
+    for i, node in enumerate(child_list):
+        find_nods(node[0], table, depth+1, child_position[i])
+
+    return child_list
 
 
-coord = Coordinator(20, 100)
-coord.display()
+def click_button():
+    table = []
+    
+    if send_responce() == True:
+        table = get_file()
+        c.delete("all")
 
-i = 1
-while i < 10:
-    End_device(0+(i*70), 100, 56, 80).display()
-    i = i + 1
+        find_nods("00158D00015F3619", table, 0, [Coordinator.X_center_coord, Coordinator.Y_center_coord])
+
+        Coordinator("00158D00015F3619").display()
+        
+        init()
+    
 
 
+
+
+
+btn = Button(text="Update", command=click_button)
+btn.pack()
 
 
 
 init()
-
