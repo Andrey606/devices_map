@@ -18,10 +18,16 @@ class Map():
     child_links = []
     sibling_links = []
 
-    def __init__(self, canvas, table):
+    def __init__(self, canvas, table, root):
         self.canv = canvas
         self.table = table
-        self.canv.pack()
+        self.canv.pack(side="left")
+        self.canv.config(scrollregion=(-0,0,1000, 1000))
+        self.canv.config(highlightthickness=0)
+
+        self.sbar = Scrollbar(root)
+        self.sbar.config(command=self.canv.yview)
+        self.canv.config(yscrollcommand=self.sbar.set)
 
     def create_new_coordinator(self, mac, x_centr, y_centr):
         coord = Map.Coordinator(mac, x_centr, y_centr, self.canv, self.SIZE)
@@ -51,7 +57,7 @@ class Map():
                         y = node2.Y_center_coord +  (m*((node.X_center_coord - node2.X_center_coord)/n))
 
                         if((node.angle - node2.angle)%180 == 0):
-                            print()
+                            m=20
                         else:
                             self.sibling_links.append( [ node2.X_center_coord, node2.Y_center_coord, node.X_center_coord, node.Y_center_coord, width, node.siblings[i][1] ] )
 
@@ -100,12 +106,12 @@ class Map():
                 child_list.append( [row[1], row[0], row[4], row[2]] )
 
             if row[3] == '0' and row[1] == parent_mac and not self.inArray(row[6], child_list):
-                child_list.append( [row[6], 'null', row[4], 'null'] )
+                child_list.append( [row[6], 'xxxx', row[4], '1'] )
                 for row2 in self.table:
                     if row2[1] == row[6] and row2[6] == parent_mac:
                         child_list[-1] =  [row2[1], row2[0], row2[4], row2[2]] 
                         break
-
+        
         # create objects of routers and end_devices
         # child_list      = [ ["00158D00015F6556", "BF0F", LQI, TYPE], ... ]
         self.post_items(child_list, depth+1, parent_coord, parent_mac)
@@ -121,7 +127,7 @@ class Map():
             if depth == 1:
                 points = self.getPoints(self.coordinators[0].X_center_coord, self.coordinators[0].Y_center_coord, self.RADIUS, len(child_list), 90, 360) 
             elif depth >= 2:
-                points = self.getPoints(parent_coord[0], parent_coord[1], (self.RADIUS*(depth-2)), len(child_list), parent_coord[2] - ((120 - (120/len(child_list)))/2), 120)
+                points = self.getPoints(parent_coord[0], parent_coord[1], (self.RADIUS), len(child_list), parent_coord[2] - ((120 - (120/len(child_list)))/2), 120)
             
             for i, node in enumerate(child_list):
                 self.create_new_child_link( points[i][0], points[i][1], parent_coord[0], parent_coord[1], 3, node[2] )
