@@ -1,14 +1,15 @@
-from mqtt_client import send_responce
+from mqtt_client import send_responce, send_responce_permit
 from connect_by_ssh import get_file, parse_file, inArray
 from draw import *
 import time
 
+objects = []
 
 # find all nodes
 def find_nods(parent, table, depth, parent_coord): 
     child_list = []
     child_position = []
-    objects = []
+    global objects
 
     # look for nodes of parent
     for row in table:
@@ -23,11 +24,28 @@ def find_nods(parent, table, depth, parent_coord):
                     break
 
     # draw them on the holst
-    child_position = post_items(child_list, depth+1, parent_coord) 
+    child_position = post_items(child_list, depth+1, parent_coord)
+    # child_position  = [ [router, angle], [router, angle], [router, angle] ]
+    
+    for i, node in enumerate(child_position):
+        objects.append(child_position[i][0])
+
+    # find siblings
+    if child_position :
+        for row in table:
+            if row[3] == '2': 
+                for i, node in enumerate(child_position):
+                    if child_position[i][0].MAC_Address == row[1] and not parent == row[6]:
+                        child_position[i][0].add_siblingTable([row[6], row[4]])
+                    elif child_position[i][0].MAC_Address == row[6] and not parent == row[1]:
+                        child_position[i][0].add_siblingTable([row[1], row[4]])
+
+
 
     # recall this function for looking nodes of found nodes
-    for i, node in enumerate(child_list):
-        find_nods(node[0], table, depth+1, child_position[i])
+    if child_position :
+        for i, node in enumerate(child_list):
+            find_nods(node[0], table, depth+1, [ child_position[i][0].X_center_coord, child_position[i][0].Y_center_coord, child_position[i][1] ])
 
     return child_list
 
@@ -35,24 +53,76 @@ def find_nods(parent, table, depth, parent_coord):
 def click_button():
     table = []
     
+    t = time.time()
     if send_responce() == True:
+        print("1: ",  time.time() - t)
+        t = time.time()
         table = get_file()
+        print("2: ",  time.time() - t)
+        t = time.time()
         c.delete("all")
 
         find_nods("00158D00015F3619", table, 0, [Coordinator.X_center_coord, Coordinator.Y_center_coord])
 
+        for node in objects:
+            for i, node5 in enumerate(node.siblings):
+                for node2 in objects:
+
+                    if node5[0] == node2.MAC_Address:
+                        R      = 255 + int(node.siblings[i][1]) * round((0 - 255) / 255)
+                        G      = 0 + int(node.siblings[i][1]) * round((255 - 0) / 255)
+                        B      = 0 + int(node.siblings[i][1]) * round((0 - 0) / 255)
+                        tk_rgb = "#%02x%02x%02x" % (R, G, B)
+
+                        m = 20
+                        n = math.sqrt((((node2.X_center_coord + node.X_center_coord)/2)**2) + (((node2.Y_center_coord + node.Y_center_coord)/2)**2))
+
+                        x = node2.X_center_coord +  (m*((node.Y_center_coord - node2.Y_center_coord)/n))
+                        y = node2.Y_center_coord +  (m*((node.X_center_coord - node2.X_center_coord)/n))
+
+                        #print("x:", x)
+                        #print("y:", y)
+
+                        #print("node.X_center_coord:", node.X_center_coord)
+                        #print("node.Y_center_coord:", node.Y_center_coord)
+                        #print("node2.X_center_coord:", node2.X_center_coord)
+                        #print("node2.Y_center_coord:", node2.Y_center_coord)
+                        print("node.angle:", node.angle)
+
+                        if((node.angle - node2.angle)%180 == 0):
+                            print()
+                            #c.create_arc([node.X_center_coord, node.Y_center_coord], [x, y], start=-node.angle, extent=180, style=ARC, outline=tk_rgb, width=3, dash=(2, 4))
+                            c.create_line(node.X_center_coord, node.Y_center_coord, x, y, fill = "red", width = 3, )
+                        else:
+                            c.create_line(node2.X_center_coord, node2.Y_center_coord, node.X_center_coord, node.Y_center_coord, fill = tk_rgb, width = 1, dash=(2, 4))
+
+                        #c.create_line(node2.X_center_coord, node2.Y_center_coord, node.X_center_coord, node.Y_center_coord, fill = "red", width = 3, )
+                        
+
+                        #i=c.create_text((node2.X_center_coord+node.X_center_coord)/2, (node2.Y_center_coord+node.Y_center_coord)/2, text=node.siblings[i][1], font="Verdana "+"{}".format(SIZE-4), fill="black")
+                        #r=c.create_rectangle(c.bbox(i),fill="white")
+                        #c.tag_lower(r,i)
+            
+            #print("MAC :",node.MAC_Address,"nodes {", node.siblings, "}")
+
+            
+            
+
         Coordinator("00158D00015F3619").display()
         
+        print("3: ",  time.time() - t)
+
         init()
-    
-
-
-
-
+        
+def click_button_permit():
+    send_responce_permit()
 
 btn = Button(text="Update", command=click_button)
+btn2 = Button(text="Permit Join", command=click_button_permit)
+
+btn2.pack()
 btn.pack()
 
-
+#c.create_arc([100, 300], [500,100],start=270, extent=180,style=ARC,outline="darkred",width=3)
 
 init()

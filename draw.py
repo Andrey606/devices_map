@@ -24,8 +24,13 @@ class Coordinator:
     MAC_Address = 0
     Short_Address = "0000"
 
+    siblings = []
+
     def __init__(self, mac):
         self.MAC_Address = mac
+
+    def clean_siblingTable(self):  
+        siblings.clear()
  
     def display(self):
         c.create_polygon(self.X_center_coord, self.Y_center_coord-SIZE, self.X_center_coord-SIZE, self.Y_center_coord+SIZE, self.X_center_coord+SIZE, self.Y_center_coord+SIZE)
@@ -39,12 +44,21 @@ class End_device:
     MAC_Address = 0
     Short_Address = 0
 
-    def __init__(self, x, y, mac, short):
+    siblings = []
+
+    def __init__(self, x, y, mac, short, angle):
         self.X_center_coord = x
         self.Y_center_coord = y
         self.MAC_Address = mac
         self.Short_Address = short
-    
+        self.angle = angle
+
+    def clean_siblingTable(self):  
+        print()
+
+    def draw_siblingLink(self):  
+        print()
+
     def display(self):
         c.create_oval(self.X_center_coord-SIZE, self.Y_center_coord-SIZE, self.X_center_coord+SIZE, self.Y_center_coord+SIZE, fill="black")
         c.create_text(self.X_center_coord+SIZE+5, self.Y_center_coord-(SIZE/2), text=self.MAC_Address, justify=CENTER, font="Verdana "+"{}".format(SIZE-4), anchor="w")
@@ -56,21 +70,53 @@ class Router:
     MAC_Address = 0
     Short_Address = 0
 
-    def __init__(self, x, y, mac, short):
+    def __init__(self, x, y, mac, short, angle):
         self.X_center_coord = x
         self.Y_center_coord = y
         self.MAC_Address = mac
         self.Short_Address = short
+        self.siblings = []
+        self.angle = angle
+
+    def clean_siblingTable(self):  
+        self.siblings.clear()
+    
+    def draw_siblingLink(self):  
+        for sibling in self.siblings:
+            R      = 255 + int(sibling[1]) * round((0 - 255) / 255)
+            G      = 0 + int(sibling[1]) * round((255 - 0) / 255)
+            B      = 0 + int(sibling[1]) * round((0 - 0) / 255)
+            tk_rgb = "#%02x%02x%02x" % (R, G, B)
+            print("sibling:",sibling)
+            print("self.X_center_coord:", self.X_center_coord, "  self.Y_center_coord:", self.Y_center_coord)
+            print("sibling[2]:", sibling[2], "  sibling[3]:", sibling[3])
+            print()
+            c.create_line(self.X_center_coord, self.Y_center_coord, sibling[2], sibling[3], fill = "red", width = 5)
+            #i=c.create_text((self.X_center_coord+sibling[2])/2, (self.Y_center_coord+sibling[3])/2, text=sibling[1], font="Verdana "+"{}".format(SIZE-4), fill="black")
+            #r=c.create_rectangle(c.bbox(i),fill="white")
+            #c.tag_lower(r,i)
+
+    def add_siblingTable(self, mac):
+        if not mac == self.MAC_Address :
+            if not self.siblings:
+                self.siblings.append(mac)
+            else:
+                for sibling in self.siblings:
+                    if sibling == mac:
+                        break
+                    self.siblings.append(mac)  
 
     def display(self):
         c.create_rectangle(self.X_center_coord-SIZE, self.Y_center_coord-SIZE, self.X_center_coord+SIZE, self.Y_center_coord+SIZE, fill="black")
         c.create_text(self.X_center_coord+SIZE+5, self.Y_center_coord-(SIZE/2), text=self.MAC_Address, justify=CENTER, font="Verdana "+"{}".format(SIZE-4), anchor="w")
         c.create_text(self.X_center_coord+SIZE+5, self.Y_center_coord+(SIZE/2), text=self.Short_Address, justify=CENTER, font="Verdana "+"{}".format(SIZE-4), anchor="w")
-    
+
+
 
 def post_items(child_list, depth, parent_coord):
     points = []
     length = len(child_list)
+    objects = []
     
     if length <= 0:
         return []
@@ -93,16 +139,15 @@ def post_items(child_list, depth, parent_coord):
         
     for i, node in enumerate(child_list):
         if node[3] == '2': # End evice
-            End_device(points[i][0], points[i][1], node[0], node[1]).display()
+            objects.append([End_device(points[i][0], points[i][1], node[0], node[1], points[i][2]), points[i][2]])
+            objects[i][0].display()
         elif node[3] == '1': # Router
-            Router(points[i][0], points[i][1], node[0], node[1]).display()
-        
+            objects.append([Router(points[i][0], points[i][1], node[0], node[1], points[i][2]), points[i][2]])
+            objects[i][0].display()
 
-    return points
+    # [rputer, angle]
+    return objects
             
-
-        
-
 
 def getPoints(x0, y0, r, noOfDividingPoints, offset, ang):
     angle = 0
@@ -113,6 +158,3 @@ def getPoints(x0, y0, r, noOfDividingPoints, offset, ang):
         res.append([round(x0 + r * math.cos(math.radians(angle)), 1), round(y0 + r * math.sin(math.radians(angle)),1), angle])
 
     return res
-    
-
-

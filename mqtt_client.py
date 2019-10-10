@@ -1,23 +1,7 @@
-import paho.mqtt.client as mqtt #import the client1
+import paho.mqtt.client as mqtt
 import time
 
-broker_address = '192.168.50.18'
-port = 8883
-USERNAME = "omo-dev-embedded"
-PASS = "omo"
-topic_TX = "hubCommands/omo-dev-embedded"
-topic_RX = "hubEvents/omo-dev-embedded"
 
-
-getpermit = '{ "hostCommand": { "getpermit": 1 } }'
-discovery = '{ "hostCommand": { "discovery": 1 } }'
-discovery_answer = '{ discovery finished }'
-
-STATUS = False
-
-TIMEOUT = 1
-
-########################################
 def on_message(client, userdata, message):
     global STATUS
     answer = str(message.payload.decode("utf-8"))
@@ -25,41 +9,38 @@ def on_message(client, userdata, message):
     #print("message topic=",message.topic)
     #print("message qos=",message.qos)
     #print("message retain flag=",message.retain)
+
+class MQTT():
+
+    client = mqtt.Client("P1")
     
-    if discovery_answer == answer:
-        STATUS = True
-    else:
-        print("Error")
-########################################
+    def __init__(self, ip='192.168.50.18', port=8883, username="omo-dev-embedded", password="omo", tx_topic="hubCommands/omo-dev-embedded", rx_topic="map_builder/omo-dev-embedded"):
+        self.IP = ip
+        self.port = port
+        self.USERNAME = username
+        self.PASS = password
+        self.topic_TX = tx_topic
+        self.topic_RX = rx_topic
+        
 
+    def create_connection(self):
+        self.client.on_message=on_message #attach function to callback
+        self.client.username_pw_set(self.USERNAME, self.PASS)
+        self.client.connect(self.IP, self.port, 60) #connect to broker
+        self.client.loop_start() #start the loop
 
-def send_responce():
-    global STATUS
-    STATUS = False
+    def close_connection(self):
+        self.client.loop_stop()
 
-    #print("creating new instance")
-    client = mqtt.Client("P1") #create new instance
-    client.on_message=on_message #attach function to callback
-    #print("connecting to broker")
-    client.username_pw_set(USERNAME, PASS)
-    client.connect(broker_address, port, 60) #connect to broker
+    def send_discovery_request(self):
+        self.client.publish(self.topic_TX, '{ "hostCommand": { "discovery": 1 } }')
+        return "{ discovery finished success }"
 
-    client.loop_start() #start the loop
-    #print("Subscribing to topic",topic_RX)
-    client.subscribe(topic_RX)
-    #print("Publishing message to topic",topic_TX)
-    client.publish(topic_TX, discovery)
+    def send_setpermit_request(self):
+        self.client.publish(self.topic_TX, '{ "hostCommand": { "setpermit": 60 } }')
+
+    def send_closepermit_request(self):
+        self.client.publish(self.topic_TX, '{ "hostCommand": { "getpermit": 1 } }')
     
-    t = time.time()
-
-    while 1:
-        if (time.time() - t) >= TIMEOUT:
-            print("TIMEOUT")
-            break
-        elif STATUS == True:
-            print("message received via", (time.time() - t))
-            break
-
-    client.loop_stop() #stop the loop
-
-    return STATUS
+    def send_getpermit_request(self):
+        self.client.publish(self.topic_TX, '{ "hostCommand": { "setpermit": 0 } }')
