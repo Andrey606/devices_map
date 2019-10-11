@@ -15,12 +15,32 @@ def update_button():
         var.load_table(table)
         var.find_nods("00158D00015F3619", 0, [400, 350])
         var.display_all_child_link()
-        var.display_all_siblings_link()
+        if box :
+            var.display_all_siblings_link()
         var.display_all_nodes()
 
         root.mainloop()
     else:
         text.insert(END, "TIMEOUT\n")
+
+box = True
+
+def change():
+    global box
+    if box:
+        box = False
+    else:
+        box = True
+
+    var.clean_canv()
+    #var.load_table(table)
+    var.find_nods("00158D00015F3619", 0, [400, 350])
+    var.display_all_child_link()
+    if box :
+        var.display_all_siblings_link()
+    var.display_all_nodes()
+
+    root.mainloop()
 
 def sermit_button():
     MQTT.send_setpermit_request()
@@ -49,6 +69,14 @@ root = Tk()
 root.geometry('1000x700')
 root.title("  zigbee network map")
 root.iconbitmap("OMO_logo_Pantone_white_back_150_150.ico")
+ 
+ # radio button
+cvar1 = BooleanVar()
+cvar1.set(1)
+c1 = Checkbutton(text="Siblings", variable=cvar1, onvalue=1, offvalue=0, command=change)
+c1.place(x=800, y=90, width=100, height=30)
+
+
 
 # button
 btn = Button(text="Update", command=update_button).place(x=800, y=0, width=100, height=30)

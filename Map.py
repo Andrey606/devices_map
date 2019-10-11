@@ -166,7 +166,7 @@ class Map():
 
     def clean_canv(self):
         self.canv.delete("all")
-        self.table.clear()
+        #self.table.clear()
         self.routers.clear()
         self.end_devices.clear()
         self.coordinators.clear()
@@ -174,6 +174,7 @@ class Map():
         self.sibling_links.clear()
 
     def load_table(self, table):
+        self.table.clear()
         self.table = table
 
     class Coordinator:
