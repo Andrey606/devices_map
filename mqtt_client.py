@@ -6,7 +6,7 @@ class MQTT():
 
     client = mqtt.Client("P1")
 
-    timeout = 5
+    timeout = 10
     answer = ""
     status = False
     t = 0
@@ -34,7 +34,7 @@ class MQTT():
         self.client.publish(self.topic_TX, '{ "hostCommand": { "discovery": 1 } }')
         self.t = time.time()
         self.status = False
-        self.answer = "{ discovery finished success }"
+        self.answer = "{ eZCB_NeighbourTableRequest: 'discovery finished success' }"
 
         while 1:
             if(time.time() - self.t > self.timeout):
@@ -51,6 +51,9 @@ class MQTT():
     
     def send_getpermit_request(self):
         self.client.publish(self.topic_TX, '{ "hostCommand": { "getpermit": 1 } }')
+
+    def send_reset_request(self):
+        self.client.publish(self.topic_TX, '{ "hostCommand": { "reset": 1 } }')
 
     def on_message(self, client, userdata, message):
         answer = str(message.payload.decode("utf-8"))

@@ -21,7 +21,7 @@ class Map():
     def __init__(self, canvas, table, root):
         self.canv = canvas
         self.table = table
-        self.canv.pack(side="left")
+        self.canv.place(x=0, y=0)
         self.canv.config(scrollregion=(-0,0,1000, 1000))
         self.canv.config(highlightthickness=0)
 

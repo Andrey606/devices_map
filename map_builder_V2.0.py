@@ -6,7 +6,7 @@ from connect_by_ssh import *
 def update_button():
     
     if MQTT.send_discovery_request():
-        text.insert(END, "Updated!\n")
+        text.insert(INSERT, "Updated!\n")
         var.clean_canv()
 
         file = SSH.get_file()
@@ -21,7 +21,7 @@ def update_button():
 
         root.mainloop()
     else:
-        text.insert(END, "TIMEOUT\n")
+        text.insert(INSERT, "TIMEOUT\n")
 
 box = True
 
@@ -44,11 +44,11 @@ def change():
 
 def sermit_button():
     MQTT.send_setpermit_request()
-    text.insert(END, "Permit Opened (60)\n")
+    text.insert(INSERT, "Permit Opened (60)\n")
 
 def closepermit_button():
     MQTT.send_closepermit_request()
-    text.insert(END, "Permit Closed\n")
+    text.insert(INSERT, "Permit Closed\n")
 
 SSH = SSH()
 MQTT = MQTT()
@@ -56,12 +56,16 @@ MQTT = MQTT()
 def open_conection_button():
     MQTT.create_connection()    
     SSH.create_connection()
-    text.insert(END, "Conection opened\n")
+    text.insert(INSERT, "Conection opened\n")
 
 def close_conection_button():
     MQTT.close_connection()
     SSH.close_connection()
-    text.insert(END, "Conection closed\n")
+    text.insert(INSERT, "Conection closed\n")
+
+def reset_CB_button():
+    MQTT.send_reset_request()
+    text.insert(INSERT, "Reset\n")
 
 
 # window
@@ -88,6 +92,8 @@ btn = Button(text="Close  permit", command=closepermit_button).place(x=900, y=30
 btn = Button(text="Open conection", command=open_conection_button).place(x=800, y=60, width=100, height=30)
 
 btn = Button(text="Close conection", command=close_conection_button).place(x=900, y=60, width=100, height=30)
+
+btn = Button(text="Reset CB", command=reset_CB_button).place(x=900, y=90, width=100, height=30)
 
 # text
 text = Text(root)
